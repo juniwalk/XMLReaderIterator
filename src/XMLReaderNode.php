@@ -100,6 +100,37 @@ class XMLReaderNode implements XMLReaderAggregate
     }
 
     /**
+     * Like {@see getSimpleXMLElement()} but strips all XML namespace declarations
+     * from the serialized node before parsing, so that plain XPath expressions
+     * (e.g. ./code) work on feeds that carry a default xmlns="..." attribute.
+     *
+     * @return SimpleXMLElement|null
+     */
+    public function getSimpleXMLElementWithoutNamespaces(): ?\SimpleXMLElement
+    {
+        if ($this->reader->nodeType !== XMLReader::ELEMENT) {
+            return null;
+        }
+
+        $doc = new \DOMDocument();
+        $node = $this->expand($doc);
+        $xml = $doc->saveXML($node);
+
+        if (false === $xml) {
+            return null;
+        }
+
+        $xml = preg_replace('/\s+xmlns(?::\w+)?="[^"]*"/', '', $xml);
+        if (null === $xml) {
+            return null;
+        }
+
+        $element = simplexml_load_string($xml);
+
+        return $element instanceof \SimpleXMLElement ? $element : null;
+    }
+
+    /**
      * @deprecated since v0.1.4, use {@see getSimpleXMLElement()} instead
      * @return null|SimpleXMLElement
      */
