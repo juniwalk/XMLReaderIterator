@@ -125,6 +125,12 @@ class XMLReaderNode implements XMLReaderAggregate
             return null;
         }
 
+        // Prefixes (e.g. g:price) must go too, otherwise the parser reports them as undefined
+        $xml = preg_replace('/(<\/?)[\w.-]+:(?=[\w.-])|(\s)[\w.-]+:(?=[\w.-]+=)/', '$1$2', $xml);
+        if (null === $xml) {
+            return null;
+        }
+
         $element = simplexml_load_string($xml);
 
         return $element instanceof \SimpleXMLElement ? $element : null;
